@@ -38,7 +38,7 @@ class Building(pygame.sprite.Sprite):
             self.amount += 1
             self.totalvalue = self.value * self.amount
             kookiekount -= self.price
-            self.price = int(self.price * 1.1)
+            self.price = int(self.price * 1.111)
             self.textprice = font.render(str(self.price) + " cookies", True, "black")
             text = font.render(str(kookiekount) + " cookies", True, "white")
 
@@ -65,7 +65,6 @@ class Building(pygame.sprite.Sprite):
         if kookiekount % 10 == 0:
             textsurface = pygame.rect.Rect((screen.get_width() / 2) - (text.get_width() / 2),(screen.get_height() / 2) - (screen.get_height() / 3), text.get_width(),text.get_height())
 
-
 pygame.init()
 screen = pygame.display.set_mode((700, 500))
 pygame.display.set_caption("cookie go click")
@@ -78,8 +77,11 @@ queue = 0.0
 building = []
 
 with open('data/data.json') as file:
-    data = json.load(file)
-    kookiekount = data["kookiekount"]
+    try:
+        data = json.load(file)
+        kookiekount = data["kookiekount"]
+    except json.decoder.JSONDecodeError:
+        kookiekount = 0
 
 font = pygame.font.Font("assets/phont.ttf",16)
 text = font.render(str(kookiekount) + " cookies", True, "white")
@@ -90,13 +92,16 @@ cursor = Building("assets/cursor.png","Auto-Clicker",10,0.1)
 grandma = Building("assets/grandma.png","Grandma",100,1)
 
 with open('data/data.json') as file:
-    data = json.load(file)
-    elements = data.keys()
+    try:
+        data = json.load(file)
+        elements = data.keys()
 
-    if 'cursor' in elements:
-        cursor.addbuilding(data['cursor'])
-    elif 'grandma' in elements:
-        grandma.addbuilding(data['grandma'])
+        if 'cursor' in elements:
+            cursor.addbuilding(data['cursor'])
+        if 'grandma' in elements:
+            grandma.addbuilding(data['grandma'])
+    except json.decoder.JSONDecodeError:
+        pass
 
 while True:
     screen.fill((122, 169, 245))
@@ -105,9 +110,16 @@ while True:
         if event.type == pygame.QUIT:
 
             with open('data/data.json','r+') as file:
+                try:
+                    data = json.load(file)
+                    file.seek(0)
 
-                data = json.load(file)
-                file.seek(0)
+                except json.decoder.JSONDecodeError:
+                    with open('data/data.json','w') as writefile:
+                        writefile.seek(0)
+                        writefile.write("{}")
+                    data = json.load(file)
+                    file.seek(0)
                 dict = {"kookiekount":kookiekount}
                 if cursor.amount > 0:
                     dict['cursor'] = cursor.amount
